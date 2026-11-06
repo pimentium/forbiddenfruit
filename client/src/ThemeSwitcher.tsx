@@ -35,7 +35,7 @@ export function ThemeSwitcher() {
   }, [pref]);
 
   return (
-    <div className="theme-switch" role="group" aria-label="Theme">
+    <div className="seg" role="group" aria-label="Theme">
       {OPTIONS.map((o) => (
         <button key={o.value} aria-pressed={pref === o.value} onClick={() => setPref(o.value)}>
           {o.label}

@@ -88,15 +88,23 @@ export function SearchPage() {
 
   return (
     <main className="wide">
-      <p className="muted">Search iOS and macOS apps, then compare prices and in-app purchases across countries.</p>
-      <form className="search" onSubmit={submit}>
-        <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Search apps…" autoFocus />
-        <button type="submit">Search</button>
-      </form>
-      <label className="muted small">
-        <input type="checkbox" checked={nameMatch} onChange={(e) => toggleNameMatch(e.target.checked)} /> Only show apps
-        whose name matches the query
-      </label>
+      <section className={`search-hero ${query ? 'compact' : ''}`}>
+        {!query && (
+          <>
+            <h1>Compare App Store prices worldwide</h1>
+            <p className="muted">Search iOS and macOS apps, then see prices and in-app purchases across countries.</p>
+          </>
+        )}
+        <form className="search" onSubmit={submit}>
+          <span aria-hidden="true">🔍</span>
+          <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Search apps…" autoFocus />
+          <button type="submit">Search</button>
+        </form>
+        <label className="toggle muted small">
+          <input type="checkbox" checked={nameMatch} onChange={(e) => toggleNameMatch(e.target.checked)} /> Only show apps
+          whose name matches the query
+        </label>
+      </section>
       {loading && <p className="muted">Searching…</p>}
       {error && <p className="error">{error}</p>}
       {shown && !loading && shown.length === 0 && <p className="muted">No apps found for “{query}”{nameMatch && results?.length ? ' with a matching name' : ''}.</p>}

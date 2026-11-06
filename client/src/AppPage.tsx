@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { CSSProperties, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AppDetails, CountryPricing, getApp, getCountries, getDebug, getPricing, getRates } from './api';
 import { buildRows } from './rows';
 import { DebugModal } from './DebugModal';
+import { CountryPicker, flag } from './CountryPicker';
 import { useTitle } from './useTitle';
 
 const LOCAL = 'local';
 const TOP_CURRENCIES = ['USD', 'EUR'];
+const QUICK_CURRENCIES = [LOCAL, ...TOP_CURRENCIES];
 
 const stored = (key: string) => {
   try {
@@ -129,16 +131,30 @@ export function AppPage() {
   const add = (code: string) => code && !selected.includes(code) && setSelected([...selected, code]);
   const remove = (code: string) => setSelected(selected.filter((c) => c !== code));
 
+  /** Countries with the lowest price in a row, compared in USD; none when prices are equal or rates are missing. */
+  const cheapest = (prices: Record<string, { value?: number }>) => {
+    if (!rates) return new Set<string>();
+    const usd = ordered.flatMap((c) => {
+      const v = prices[c]?.value;
+      const cur = byCountry.get(c)?.currency;
+      return v && cur && rates[cur] ? [[c, v / rates[cur]] as const] : [];
+    });
+    if (usd.length < 2) return new Set<string>();
+    const min = Math.min(...usd.map(([, v]) => v));
+    const winners = usd.filter(([, v]) => v <= min * 1.0001).map(([c]) => c);
+    return winners.length === usd.length ? new Set<string>() : new Set(winners);
+  };
+
   if (error && !app) return <main><Link to="/">← Back</Link><p className="error">{error}</p></main>;
   if (!app) return <main><p className="muted">Loading…</p></main>;
 
   return (
     <main className="wide">
-      <Link to="/" onClick={(e) => { if (history.length > 1) { e.preventDefault(); navigate(-1); } }}>
+      <Link className="back" to="/" onClick={(e) => { if (history.length > 1) { e.preventDefault(); navigate(-1); } }}>
         ← Back to results
       </Link>
-      <header className="app-head">
-        <img src={app.icon} alt="" width={96} height={96} />
+      <header className="hero" style={{ '--icon': `url(${app.icon})` } as CSSProperties}>
+        <img src={app.icon} alt="" width={104} height={104} />
         <div>
           <h1>{app.name}</h1>
           <div className="muted">
@@ -147,91 +163,97 @@ export function AppPage() {
         </div>
       </header>
 
-      <section className="picker">
-        <label>
-          Add country{' '}
-          <select value="" onChange={(e) => add(e.target.value)}>
-            <option value="">Select a country…</option>
-            {options.map((o) => (
-              <option key={o.code} value={o.code} disabled={selected.includes(o.code)}>
-                {o.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="currency">
-          Show prices in{' '}
-          <select value={currency} onChange={(e) => setCurrency(e.target.value)} disabled={!rates}>
-            <option value={LOCAL}>Local currency</option>
-            {rates && (
-              <>
-                {TOP_CURRENCIES.filter((c) => rates[c]).map((c) => <option key={c} value={c}>{c}</option>)}
-                <option disabled>──────</option>
-                {Object.keys(rates).filter((c) => !TOP_CURRENCIES.includes(c)).sort().map((c) => <option key={c} value={c}>{c}</option>)}
-              </>
-            )}
-          </select>
-        </label>
-        <div className="chips">
-          {selected.map((c) => (
-            <button key={c} className="chip" onClick={() => remove(c)} title="Remove">
-              {countryName(c)} ✕
+      <div className="controls">
+        <CountryPicker options={options} selected={selected} onAdd={add} />
+        <div className="seg" role="group" aria-label="Currency">
+          {QUICK_CURRENCIES.map((c) => (
+            <button key={c} aria-pressed={currency === c} onClick={() => setCurrency(c)}>
+              {c === LOCAL ? 'Local' : c}
             </button>
           ))}
+          <select
+            className={QUICK_CURRENCIES.includes(currency) ? '' : 'on'}
+            aria-label="Other currency"
+            value={QUICK_CURRENCIES.includes(currency) ? '' : currency}
+            disabled={!rates}
+            onChange={(e) => e.target.value && setCurrency(e.target.value)}
+          >
+            <option value="" disabled>More…</option>
+            {rates && Object.keys(rates).filter((c) => !TOP_CURRENCIES.includes(c)).sort().map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
         </div>
-      </section>
+      </div>
+      <div className="chips">
+        {selected.map((c) => (
+          <span key={c} className="chip">
+            <span className="flag">{flag(c)}</span>
+            {countryName(c)}
+            <button aria-label={`Remove ${countryName(c)}`} onClick={() => remove(c)}>✕</button>
+          </span>
+        ))}
+      </div>
 
       {error && <p className="error">{error}</p>}
       {loading && <p className="muted">Loading prices…</p>}
       {!selected.length && <p className="muted">Pick one or more countries to see prices.</p>}
 
       {ordered.length > 0 && (
-        <div className={`table-wrap ${loading ? 'dim' : ''}`}>
-          <table>
-            <thead>
-              <tr>
-                <th></th>
-                {ordered.map((c) => (
-                  <th key={c}>
-                    {countryName(c)}
-                    <div className="muted small">{byCountry.get(c)!.currency ?? ''}</div>
-                    {(() => {
-                      const p = byCountry.get(c)!;
-                      return p.available && p.url ? (
-                        <div className="small">
-                          <a href={p.url} target="_blank" rel="noreferrer">App Store ↗</a>
-                          {p.rating ? <div className="muted">★ {p.rating.toFixed(1)} · {compact.format(p.ratingCount ?? 0)} ratings</div> : <div className="muted">No ratings</div>}
-                        </div>
-                      ) : null;
-                    })()}
-                    {debugOptions.includes('raw') && <button className="debug-btn" onClick={() => openDebug(c)}>Raw data</button>}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="app-row">
-                <th>App price</th>
-                {ordered.map((c) => {
-                  const p = byCountry.get(c)!;
-                  return <td key={c}>{p.available ? show(p.appPrice!, p.appPriceValue, p.currency) : <span className="muted">Not available</span>}</td>;
-                })}
-              </tr>
-              {rows.map((r) => (
-                <tr key={r.key}>
-                  <th>{r.label}</th>
-                  {ordered.map((c) => (
-                    <td key={c}>{r.prices[c] ? show(r.prices[c].price, r.prices[c].value, byCountry.get(c)!.currency) : <span className="muted">—</span>}</td>
-                  ))}
-                </tr>
-              ))}
-              {rows.length === 0 && !loading && (
+        <div className={`table ${loading ? 'dim' : ''}`}>
+          <div className="table-scroll">
+            <table>
+              <thead>
                 <tr>
-                  <th colSpan={ordered.length + 1} className="muted">No in-app purchases listed.</th>
+                  <th></th>
+                  {ordered.map((c) => {
+                    const p = byCountry.get(c)!;
+                    return (
+                      <th key={c}>
+                        <span className="flag">{flag(c)}</span>
+                        {countryName(c)}
+                        <small>
+                          {p.currency ?? ''}
+                          {p.available && (p.rating ? ` · ★ ${p.rating.toFixed(1)} · ${compact.format(p.ratingCount ?? 0)}` : ' · No ratings')}
+                        </small>
+                        {p.available && p.url && <a href={p.url} target="_blank" rel="noreferrer">App Store ↗</a>}
+                        {debugOptions.includes('raw') && <button className="debug-btn" onClick={() => openDebug(c)}>Raw data</button>}
+                      </th>
+                    );
+                  })}
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                <tr className="app-row">
+                  <th>App price</th>
+                  {ordered.map((c) => {
+                    const p = byCountry.get(c)!;
+                    return <td key={c}>{p.available ? show(p.appPrice!, p.appPriceValue, p.currency) : <span className="muted">Not available</span>}</td>;
+                  })}
+                </tr>
+                {rows.map((r) => {
+                  const best = cheapest(r.prices);
+                  return (
+                    <tr key={r.key}>
+                      <th>{r.label}</th>
+                      {ordered.map((c) => (
+                        <td key={c} className={best.has(c) ? 'cheap' : ''} title={best.has(c) ? 'Cheapest' : undefined}>
+                          {r.prices[c] ? show(r.prices[c].price, r.prices[c].value, byCountry.get(c)!.currency) : <span className="muted">—</span>}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+                {rows.length === 0 && !loading && (
+                  <tr>
+                    <th colSpan={ordered.length + 1} className="muted">No in-app purchases listed.</th>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      {ordered.length > 0 && (
+        <>
           {pricing.some((p) => p.error) && (
             <p className="error small">
               {pricing.filter((p) => p.error).map((p) => `${countryName(p.country)}: ${p.error}`).join(' · ')}
@@ -239,9 +261,9 @@ export function AppPage() {
           )}
           <p className="muted small">
             In-app purchases come from the App Store product page, which lists only the most prominent items. A dash
-            means that item is not listed in that country.
+            means that item is not listed in that country. Green marks the cheapest price in a row.
           </p>
-        </div>
+        </>
       )}
       {debugView && (
         <DebugModal
