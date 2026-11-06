@@ -209,10 +209,11 @@ export function AppPage() {
                     return (
                       <th key={c}>
                         <span className="flag">{flag(c)}</span>
-                        {countryName(c)}
+                        <span className="cname">{countryName(c)}</span>
+                        <span className="ccode">{c.toUpperCase()}</span>
                         <small>
-                          {p.currency ?? ''}
-                          {p.available && (p.rating ? ` · ★ ${p.rating.toFixed(1)} · ${compact.format(p.ratingCount ?? 0)}` : ' · No ratings')}
+                          <span>{p.currency ?? ''}</span>
+                          {p.available && <span>{p.rating ? `★ ${p.rating.toFixed(1)} · ${compact.format(p.ratingCount ?? 0)}` : 'No ratings'}</span>}
                         </small>
                         {p.available && p.url && <a href={p.url} target="_blank" rel="noreferrer">App Store ↗</a>}
                         {debugOptions.includes('raw') && <button className="debug-btn" onClick={() => openDebug(c)}>Raw data</button>}

@@ -18,6 +18,7 @@ export function SearchPage() {
   const [results, setResults] = useState<AppSummary[] | null>(null);
   const [debugOptions, setDebugOptions] = useState<string[]>([]);
   const [rawView, setRawView] = useState<DebugState | null>(null);
+  const [tab, setTab] = useState<'iOS' | 'macOS'>('iOS');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -53,6 +54,12 @@ export function SearchPage() {
     const words = normalize(query).split(/\s+/).filter(Boolean);
     return results.filter((a) => words.every((w) => normalize(a.name).includes(w)));
   }, [results, nameMatch, query]);
+
+  // On narrow screens only one platform is shown (tabs); start on the first one that has results.
+  useEffect(() => {
+    if (!shown?.length) return;
+    setTab(!shown.some((a) => a.platform === 'iOS') && shown.some((a) => a.platform === 'macOS') ? 'macOS' : 'iOS');
+  }, [shown]);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -114,11 +121,19 @@ export function SearchPage() {
         </p>
       )}
       {shown && !loading && shown.length > 0 && (
+        <>
+        <div className="tabs seg" role="tablist" aria-label="Platform">
+          {(['iOS', 'macOS'] as const).map((platform) => (
+            <button key={platform} role="tab" aria-selected={tab === platform} aria-pressed={tab === platform} onClick={() => setTab(platform)}>
+              {platform} ({shown.filter((a) => a.platform === platform).length})
+            </button>
+          ))}
+        </div>
         <div className="columns">
           {(['iOS', 'macOS'] as const).map((platform) => {
             const apps = shown.filter((a) => a.platform === platform);
             return (
-              <section key={platform}>
+              <section key={platform} className={tab === platform ? 'active' : ''}>
                 <h2>{platform}</h2>
                 {apps.length === 0 && <p className="muted">No {platform} apps found.</p>}
                 <ul className="results">
@@ -140,6 +155,7 @@ export function SearchPage() {
             );
           })}
         </div>
+        </>
       )}
       {rawView && (
         <DebugModal

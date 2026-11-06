@@ -34,12 +34,13 @@ h2 { letter-spacing: -0.01em; }
 .small { font-size: 0.8rem; }
 .error { color: var(--err); }
 .flag { margin-right: 6px; font-size: 1.1em; }
+.ccode { display: none; }
 input, select, button { font: inherit; color: inherit; }
 button { cursor: pointer; }
 .glass { background: var(--card); border: 1px solid var(--line); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
 
 .topbar { max-width: 1080px; margin: 0 auto; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.01em; color: var(--fg); }
+.brand { white-space: nowrap; display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.01em; color: var(--fg); }
 .brand:hover { text-decoration: none; }
 .logo { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: linear-gradient(135deg, #ff5f6d, #ffc371); }
 
@@ -66,7 +67,14 @@ button { cursor: pointer; }
 .results a:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow); text-decoration: none; }
 .results div { flex: 1; min-width: 0; }
 .results img { border-radius: 22%; }
-@media (max-width: 700px) { .columns { grid-template-columns: 1fr; } }
+.tabs { display: none; }
+@media (max-width: 700px) {
+  .columns { grid-template-columns: 1fr; margin-top: 12px; }
+  .columns section:not(.active) { display: none; }
+  .columns h2 { display: none; }
+  .tabs { display: flex; margin-top: 14px; }
+  .tabs button { flex: 1; padding: 9px 14px; }
+}
 
 .badge { font-size: 0.72rem; padding: 2px 10px; border-radius: 99px; border: 1px solid var(--line); background: rgba(124, 156, 255, 0.15); color: #3b5bdb; }
 .badge.mac { background: rgba(167, 139, 250, 0.18); color: #6741d9; }
@@ -99,6 +107,8 @@ tr:last-child > th, tr:last-child > td { border-bottom: 0; }
 thead th { background: var(--head); vertical-align: top; font-weight: 600; }
 thead th small, thead th a { display: block; font-weight: 400; font-size: 0.78rem; }
 thead th small { color: var(--muted); }
+thead th a { white-space: nowrap; }
+thead th small span + span::before { content: ' · '; }
 tbody th { text-align: left; font-weight: 500; position: sticky; left: 0; background: var(--bg); white-space: normal; min-width: 190px; }
 tbody tr:hover > td, tbody tr:hover > th { background: var(--hover); }
 .app-row th, .app-row td { font-weight: 600; }
@@ -113,6 +123,21 @@ td .small { font-weight: 400; }
 .modal pre { overflow: auto; margin: 0; font-size: 0.78rem; line-height: 1.4; }
 
 @media (max-width: 600px) {
-  .hero { flex-direction: column; align-items: flex-start; }
+  .topbar { padding: 14px 16px; }
+  main { padding-left: 16px; padding-right: 16px; }
+  .topbar .seg button { padding: 4px 10px; font-size: 0.8rem; }
+  input, select { font-size: 16px; } /* avoids iOS zooming into focused fields */
+  .hero { gap: 14px; padding: 16px; border-radius: 20px; }
+  .hero img { width: 64px; height: 64px; border-radius: 15px; }
+  .hero h1 { font-size: 1.25rem; }
+  .picker-field { min-width: 0; flex-basis: 100%; }
+  th, td { padding: 10px 12px; font-size: 0.9rem; }
+  tbody th { min-width: 100px; font-size: 0.85rem; }
+  thead th { white-space: normal; min-width: 92px; }
+  thead th small span { display: block; white-space: nowrap; }
+  thead th small span + span::before { content: none; }
+  td { min-width: 92px; }
+  .cname { display: none; }
+  .ccode { display: inline; }
   .search-hero h1 { font-size: 1.8rem; }
 }
