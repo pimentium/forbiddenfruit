@@ -36,5 +36,10 @@ Web app: search iOS/macOS apps, then compare app price and in-app purchases (IAP
 ## Ideas not done
 
 - Show "No macOS app named X" note when the filter empties a column.
-- Better cross-country matching of same-named IAPs; rate limiting for public deployment; Dockerfile; tests (parsePrice, buildRows are pure and easy to test).
+- Better cross-country matching of same-named IAPs; rate limiting inside the app (the reverse proxy limits per IP today); tests (parsePrice, buildRows are pure and easy to test).
 - Logo proposal exists at `client/public/logo.svg` but is not used in the UI yet.
+
+## Docker / URL prefix
+
+- `Dockerfile` (multi-stage, Node 22 Alpine) builds the client, then installs production dependencies only. `tsx` is a runtime dependency because the server runs TypeScript directly.
+- `BASE_PATH` (build time) sets Vite's `base`; the client reads `import.meta.env.BASE_URL` for the router `basename` and as the API prefix. The server is unaware of the prefix: the reverse proxy strips it.

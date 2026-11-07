@@ -33,8 +33,11 @@ export interface CountryPricing {
   purchases: Purchase[];
 }
 
+// The app may be served under a prefix (Vite `base`, e.g. /forbiddenfruit/); API URLs below start with /api.
+const apiBase = import.meta.env.BASE_URL.replace(/\/$/, '');
+
 async function get<T>(url: string): Promise<T> {
-  const res = await fetch(url);
+  const res = await fetch(apiBase + url);
   if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? `HTTP ${res.status}`);
   return res.json();
 }

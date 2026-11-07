@@ -41,6 +41,23 @@ npm start          # serves the API and client/dist on PORT (default 3001)
 
 Put a reverse proxy with HTTPS (Caddy, nginx) in front of it.
 
+### Docker
+
+```bash
+docker build -t forbiddenfruit .
+docker run --rm -p 127.0.0.1:3001:3001 -e DEBUG_SECRET=change-me forbiddenfruit
+```
+
+The image runs as a non-root user and works with a read-only root file system.
+
+To serve the app under a URL prefix (for example behind a reverse proxy at `https://example.com/forbiddenfruit/`), pass the prefix at **build** time. It is baked into the client (asset URLs, router base, API calls):
+
+```bash
+docker build --build-arg BASE_PATH=/forbiddenfruit/ -t forbiddenfruit .
+```
+
+The proxy must strip the prefix before passing requests on (`proxy_pass http://127.0.0.1:3001/;` with a trailing slash), and redirect `/forbiddenfruit` to `/forbiddenfruit/`. Without `BASE_PATH` the app is served from the root. The same variable works for `npm run build`.
+
 | Environment variable | Purpose | Default |
 |---|---|---|
 | `PORT` | HTTP port | `3001` |
