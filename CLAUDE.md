@@ -27,6 +27,8 @@ Web app: search iOS/macOS apps, then compare app price and in-app purchases (IAP
 - **Theme:** `data-theme` attribute on `<html>`, set early by an inline script in `client/index.html` and by `ThemeSwitcher`; CSS variables in `styles.css`.
 - Titles: `<page> – Forbidden Fruit` (query/app name first) via `useTitle`. The top header bar was removed on request.
 
+- **Analytics:** optional GA4 via build-time `VITE_GA_MEASUREMENT_ID` (`.env` in project root, `envDir: '..'`). `ga.ts` loads gtag and sends manual page views (SPA); `Analytics.tsx` triggers them on path/`q` changes after 800 ms so titles are set. `secret` and `debug` params must never be sent to Google. (Don't name a file `analytics.ts` next to `Analytics.tsx`: case-insensitive filesystems clash.)
+
 ## Conventions
 
 - TypeScript strict, ES modules (`.js` suffix in server imports), React function components, plain CSS with variables, no UI/state libraries.

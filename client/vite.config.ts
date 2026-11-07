@@ -7,6 +7,7 @@ const base = `/${(process.env.BASE_PATH ?? '').replace(/^\/+|\/+$/g, '')}/`.repl
 export default defineConfig({
   base,
   root: 'client',
+  envDir: '..', // read .env from the project root
   plugins: [react()],
   server: { port: 5173, proxy: { '/api': 'http://localhost:3001' } },
   build: { outDir: 'dist' },

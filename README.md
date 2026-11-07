@@ -64,6 +64,17 @@ The proxy must strip the prefix before passing requests on (`proxy_pass http://1
 | `DEBUG_SECRET` | Secret that enables the debug URL options. **Set your own.** | `forbiddenfruit` |
 | `SCRAPE_USER_AGENT` | User agent used to fetch App Store pages | desktop Safari |
 
+## Google Analytics (optional)
+
+Set a GA4 measurement ID when building the client; without it no analytics code is included:
+
+```bash
+cp .env.example .env        # then set VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+npm run build
+```
+
+The ID is baked in at build time (it is public by nature), so rebuild after changing it. Page views are sent on page changes and when the search query changes, but not when countries or currency are toggled. The `secret` and `debug` URL parameters are removed from what is sent to Google. The app does not show a cookie-consent banner; add one if your audience requires it.
+
 ## URL parameters
 
 | Page | Parameter | Meaning |
