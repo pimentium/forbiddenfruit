@@ -9,6 +9,9 @@ export interface CountryOption {
 export const flag = (code: string) =>
   String.fromCodePoint(...[...code.toUpperCase()].map((c) => 0x1f1a5 + c.charCodeAt(0)));
 
+/** Plain Latin letters only: strips accents (Curaçao -> Curacao) and curly apostrophes. */
+const plain = (name: string) => name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\u2018\u2019]/g, "'");
+
 interface Props {
   options: CountryOption[];
   selected: string[];
@@ -22,7 +25,7 @@ export function CountryPicker({ options, selected, onAdd }: Props) {
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return options.filter((o) => !selected.includes(o.code) && (!q || o.name.toLowerCase().includes(q) || o.code === q));
+    return options.filter((o) => !selected.includes(o.code) && (!q || plain(o.name).toLowerCase().includes(q) || o.code === q));
   }, [options, selected, query]);
 
   const choose = (code: string) => {
@@ -80,8 +83,7 @@ export function CountryPicker({ options, selected, onAdd }: Props) {
               }}
               onMouseEnter={() => setActive(i)}
             >
-              <span className="flag">{flag(o.code)}</span>
-              {o.name}
+              {plain(o.name)}
             </li>
           ))}
         </ul>
