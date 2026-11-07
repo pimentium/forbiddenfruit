@@ -58,6 +58,8 @@ docker build --build-arg BASE_PATH=/forbiddenfruit/ -t forbiddenfruit .
 
 The proxy must strip the prefix before passing requests on (`proxy_pass http://127.0.0.1:3001/;` with a trailing slash), and redirect `/forbiddenfruit` to `/forbiddenfruit/`. Without `BASE_PATH` the app is served from the root. The same variable works for `npm run build`.
 
+Google Analytics in the image: add `--build-arg VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX` (the `.env` file is not copied into the image, see `.dockerignore`).
+
 | Environment variable | Purpose | Default |
 |---|---|---|
 | `PORT` | HTTP port | `3001` |

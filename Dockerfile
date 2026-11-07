@@ -10,6 +10,9 @@ COPY client client
 # URL prefix the app is served under, e.g. /forbiddenfruit/ behind a reverse proxy that strips it (default: root).
 ARG BASE_PATH=/
 ENV BASE_PATH=$BASE_PATH
+# Optional Google Analytics 4 measurement ID (G-XXXXXXXXXX), baked into the client. Empty: no analytics code.
+ARG VITE_GA_MEASUREMENT_ID=
+ENV VITE_GA_MEASUREMENT_ID=$VITE_GA_MEASUREMENT_ID
 RUN npm run build
 
 # --- run: API + built client ----------------------------------------------------------------------
