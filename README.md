@@ -66,6 +66,26 @@ Google Analytics in the image: add `--build-arg VITE_GA_MEASUREMENT_ID=G-XXXXXXX
 | `DEBUG_SECRET` | Secret that enables the debug URL options. **Set your own.** | `forbiddenfruit` |
 | `SCRAPE_USER_AGENT` | User agent used to fetch App Store pages | desktop Safari |
 
+## Deployment (GitHub Actions)
+
+`.github/workflows/deploy.yml` runs on every push to `main` (and by hand: Actions, Run workflow):
+
+1. builds the client (`BASE_PATH` and the Google Analytics ID are baked in), installs the production dependencies only and packs the server code, the built client and `node_modules` into `release.tar.gz` (nothing is published anywhere);
+2. if `DEPLOY_URL` is set, uploads the tarball with a signed request to the webhook of the server, which unpacks it, restarts the app on the new version and goes back to the previous one if the health check fails. The run waits for the result (red = the server did not switch).
+
+The release is built on a Linux x64 runner, so the server must be Linux x64 with the same Node major version (22).
+
+One-time setup in the repository (Settings, Secrets and variables, Actions):
+
+| Kind | Name | Value |
+|---|---|---|
+| Variable | `BASE_PATH` | URL prefix, for example `/forbiddenfruit/` (default `/`) |
+| Variable | `GA_MEASUREMENT_ID` | optional GA4 ID, `G-XXXXXXXXXX` |
+| Variable | `DEPLOY_URL` | `https://<host>/hooks/forbiddenfruit` (leave unset to only build) |
+| Secret | `DEPLOY_SECRET` | shared key of the server's webhook (64 hex digits, `openssl rand -hex 32`) |
+
+The server is one Docker container that receives the upload, installs releases into its own data directory and runs the app; it is set up by the `forbiddenfruit` role of the `minions` repository, which also documents the request format. Roll back by re-running the workflow of an older commit. Changing `BASE_PATH` or `GA_MEASUREMENT_ID` takes effect with the next build: re-run the workflow.
+
 ## Google Analytics (optional)
 
 Set a GA4 measurement ID when building the client; without it no analytics code is included:

@@ -45,3 +45,9 @@ Web app: search iOS/macOS apps, then compare app price and in-app purchases (IAP
 
 - `Dockerfile` (multi-stage, Node 22 Alpine) builds the client, then installs production dependencies only. `tsx` is a runtime dependency because the server runs TypeScript directly.
 - `BASE_PATH` (build time) sets Vite's `base`; the client reads `import.meta.env.BASE_URL` for the router `basename` and as the API prefix. The server is unaware of the prefix: the reverse proxy strips it.
+
+## Deployment
+
+- `.github/workflows/deploy.yml`: on push to `main` build the client, `npm ci --omit=dev`, pack `server client/dist node_modules package.json package-lock.json tsconfig.json` into `release.tar.gz`, then upload it to `DEPLOY_URL/deploy` with headers `X-Commit`, `X-Timestamp`, `X-Content-SHA256` and `X-Signature-256` = HMAC-SHA256 (`DEPLOY_SECRET`) over `deploy:<sha>:<ts>:<digest>:<length>`; poll `DEPLOY_URL/status` (signed over `status:<sha>:<ts>`) until `ok`/`failed`. The server side (one self-updating container) lives in the `minions` repo, role `forbiddenfruit`.
+- The server accepts only regular files and directories, and only the top-level names above (no symlinks or hard links: `node_modules/.bin` is removed and `tar --hard-dereference` is used), and needs `server/index.ts`, `client/dist/index.html` and `node_modules/tsx/package.json` in the release. If you add a top-level directory the server must load at run time, add its name to the updater's list in `minions` as well.
+- The server starts the app as `node --import tsx server/index.ts` from the release directory with `PORT` and `DEBUG_SECRET` in the environment; keep it runnable that way.
