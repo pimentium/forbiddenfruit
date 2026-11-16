@@ -5,6 +5,7 @@ import { SearchPage } from './SearchPage';
 import { AppPage } from './AppPage';
 import { Analytics } from './Analytics';
 import { Brand } from './Brand';
+import { Footer } from './Footer';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import './styles.css';
 
@@ -20,6 +21,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/" element={<SearchPage />} />
         <Route path="/app/:id" element={<AppPage />} />
       </Routes>
+      <Footer />
     </BrowserRouter>
   </StrictMode>,
 );

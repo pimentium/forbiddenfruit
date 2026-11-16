@@ -31,7 +31,9 @@ jobs:
         env:
           BASE_PATH: ${{ vars.BASE_PATH || '/' }}
           VITE_GA_MEASUREMENT_ID: ${{ vars.GA_MEASUREMENT_ID }}
+          APP_COMMIT_SHA: ${{ github.sha }}
         run: |
+          export APP_COMMIT_DATE="$(git log -1 --format=%cI)"      # shown in the page footer
           npm ci
           npm run build
 

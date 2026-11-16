@@ -28,6 +28,7 @@ body::before {
 }
 main { max-width: 720px; margin: 0 auto; padding: 8px 20px 60px; }
 main.wide { max-width: 1080px; }
+.footer { max-width: 1080px; margin: 0 auto; padding: 0 20px 24px; font-size: 0.72rem; text-align: center; opacity: 0.8; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 h1 { margin: 0 0 4px; font-size: 2rem; letter-spacing: -0.02em; line-height: 1.2; }

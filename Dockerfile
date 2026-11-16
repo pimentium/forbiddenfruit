@@ -13,6 +13,10 @@ ENV BASE_PATH=$BASE_PATH
 # Optional Google Analytics 4 measurement ID (G-XXXXXXXXXX), baked into the client. Empty: no analytics code.
 ARG VITE_GA_MEASUREMENT_ID=
 ENV VITE_GA_MEASUREMENT_ID=$VITE_GA_MEASUREMENT_ID
+# Optional: commit id and date (ISO 8601) shown in the page footer; without them it says "Development version".
+ARG APP_COMMIT_SHA=
+ARG APP_COMMIT_DATE=
+ENV APP_COMMIT_SHA=$APP_COMMIT_SHA APP_COMMIT_DATE=$APP_COMMIT_DATE
 RUN npm run build
 
 # --- run: API + built client ----------------------------------------------------------------------
